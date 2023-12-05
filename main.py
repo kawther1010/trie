@@ -1,11 +1,16 @@
 # 0.IMPORT AND INSTALL
+
 #(https://dreampuf.github.io/GraphvizOnline/) to visualize the DOT files as images. need to download it /add path to sys vars & import it later.
 #pip install graphviz
 from graphviz import Digraph
+import subprocess
 
 # 1. QUICK SORT
-# Function to perform quicksort
 def quicksort(arr, depth=0):
+    
+    #if len(arr) <= 1:
+       # return arr
+    
     if not arr:
         return "", []
     else:
@@ -21,20 +26,33 @@ def quicksort(arr, depth=0):
 
     return tree_str, sorted_list
 
-def draw_quicksort_tree_dot(arr, depth=0):
+def quicksort_with_dot(arr, depth=0, dot_code=""):
     if not arr:
-        return ""
+        return dot_code, []
 
     pivot = arr[0]
     left = [x for x in arr[1:] if x <= pivot]
     right = [x for x in arr[1:] if x > pivot]
 
-    tree_str = "  " * depth + str(pivot) + "\n"
-    tree_str += draw_quicksort_tree_dot(left, depth + 1)
-    tree_str += draw_quicksort_tree_dot(right, depth + 1)
+    dot_code += f'"{pivot}" [label="{pivot}"];\n'
+    
+    if left:
+        dot_code += f'"{pivot}" -> "{left[0]}" [label="L"];\n'
+        dot_code, sorted_left = quicksort_with_dot(left, depth + 1, dot_code)
+    else:
+        sorted_left = []
 
-    return tree_str
-# 2. BST
+    if right:
+        dot_code += f'"{pivot}" -> "{right[0]}" [label="R"];\n'
+        dot_code, sorted_right = quicksort_with_dot(right, depth + 1, dot_code)
+    else:
+        sorted_right = []
+
+    sorted_list = sorted_left + [pivot] + sorted_right
+
+    return dot_code, sorted_list
+
+# 2. Binary Search Tree
 # Node class for binary search tree
 class Node:
     def __init__(self, value):
@@ -52,7 +70,6 @@ def insert(root, value):
         root.right = insert(root.right, value)
     return root
 
-# Function to draw the binary search tree
 def draw_binary_tree_dot(root, dot, depth=0):
     if root is None:
         return ""
@@ -75,14 +92,13 @@ def draw_binary_tree_dot(root, dot, depth=0):
 
     return tree_str
 
-# 3. IMPLIMENTATION
-# Read the list from a text file
+# 3. READING THE DATA
 def read_list_from_file(filename):
     with open(filename, 'r') as file:
         return [int(line.strip()) for line in file]
-
+    
 # Specify the file name containing the list of numbers
-file_name = 'numbers.txt'  # Change this to the actual file name
+file_name = 'numbers.txt'
 
 # Read the list from the file
 original_list = read_list_from_file(file_name)
@@ -92,23 +108,31 @@ binary_search_tree = None
 for num in original_list:
     binary_search_tree = insert(binary_search_tree, num)
 
-# Generate DOT source for quicksort tree and get the sorted list
-quicksort_dot, quicksort_sorted_list = quicksort(original_list)
+# 4. DRAWING IN PNG FILE FROM DOT FILE
+# QUICKSORT TREE
+dot_code, sorted_list = quicksort_with_dot(original_list)
 
-# Save DOT source to files for quicksort tree and binary search tree
-with open('quicksort_tree.dot', 'w') as quicksort_file:
-    quicksort_file.write(quicksort_dot)
+with open('dot/quicksort_tree.dot', 'w') as dot_file:
+    dot_file.write('digraph QuicksortTree {\n')
+    dot_file.write(dot_code)
+    dot_file.write('}\n')
+dot_file_path = 'dot/quicksort_tree.dot'
 
+png_output_path = 'quicksort_tree.png'
+
+# Run the dot command to generate PNG from DOT file
+subprocess.run(['dot', '-Tpng', '-o', png_output_path, dot_file_path])
+
+# BST TREE
 binary_search_tree_dot = Digraph(comment='Binary Search Tree')
 draw_binary_tree_dot(binary_search_tree, binary_search_tree_dot)
-with open('binary_tree.dot', 'w') as binary_tree_file:
+with open('dot/binary_tree.dot', 'w') as binary_tree_file:
     binary_tree_file.write(binary_search_tree_dot.source)
 
-# Render quicksort DOT file to a PNG image
-quicksort_image_path = 'quicksort_tree'
-dot_quicksort = Digraph(comment='Quicksort Tree')
-dot_quicksort.render(quicksort_image_path, format='png', cleanup=True)
+binary_search_tree_image_path = 'png/binary_tree'
+binary_search_tree_dot.render(binary_search_tree_image_path, format='png', cleanup=True)
 
+# 5. HTML CONTENT
 # Generate HTML content
 html_content = f'''
 <!DOCTYPE html>
@@ -135,19 +159,20 @@ html_content = f'''
 </table>
 
 <h2>Quicksort Tree Visualization</h2>
-<img src="{quicksort_image_path}.png" alt="Quicksort Tree" style="max-width: 100%;">
+<img src="{png_output_path}" alt="Quicksort Tree" style="max-width: 100%;">
 
 <h2>Sorted List (Quicksort)</h2>
 <table border="1">
     <tr>
         <!-- Header Row -->
-        {" ".join(f'<th>{i}</th>' for i in range(len(quicksort_sorted_list)))}
+        {" ".join(f'<th>{i}</th>' for i in range(len(sorted_list)))}
     </tr>
     <tr>
         <!-- Values Row -->
-        {" ".join(f'<td>{value}</td>' for value in quicksort_sorted_list)}
+        {" ".join(f'<td>{value}</td>' for value in sorted_list)}
     </tr>
 </table>
+
 
 <h2>Binary Search Tree Visualization</h2>
 <img src="{binary_search_tree_image_path}.png" alt="Binary Search Tree" style="max-width: 100%;">
@@ -156,7 +181,7 @@ html_content = f'''
 </html>
 '''
 
-# 4.DISPLAYING
+# 6. DISPLAYING
 # Save HTML content to a file
 with open('tree_visualization.html', 'w') as html_file:
     html_file.write(html_content)
