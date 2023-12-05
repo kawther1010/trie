@@ -6,10 +6,6 @@ from graphviz import Digraph
 # 1. QUICK SORT
 # Function to perform quicksort
 def quicksort(arr, depth=0):
-    """
-    if len(arr) <= 1:
-        return arr
-    """
     if not arr:
         return "", []
     else:
@@ -25,7 +21,7 @@ def quicksort(arr, depth=0):
 
     return tree_str, sorted_list
 
-def draw_quicksort_tree(arr, depth=0):
+def draw_quicksort_tree_dot(arr, depth=0):
     if not arr:
         return ""
 
@@ -34,8 +30,8 @@ def draw_quicksort_tree(arr, depth=0):
     right = [x for x in arr[1:] if x > pivot]
 
     tree_str = "  " * depth + str(pivot) + "\n"
-    tree_str += draw_quicksort_tree(left, depth + 1)
-    tree_str += draw_quicksort_tree(right, depth + 1)
+    tree_str += draw_quicksort_tree_dot(left, depth + 1)
+    tree_str += draw_quicksort_tree_dot(right, depth + 1)
 
     return tree_str
 # 2. BST
@@ -112,10 +108,6 @@ with open('binary_tree.dot', 'w') as binary_tree_file:
 quicksort_image_path = 'quicksort_tree'
 dot_quicksort = Digraph(comment='Quicksort Tree')
 dot_quicksort.render(quicksort_image_path, format='png', cleanup=True)
-
-# Render binary search tree DOT file to a PNG image
-binary_search_tree_image_path = 'binary_tree'
-binary_search_tree_dot.render(binary_search_tree_image_path, format='png', cleanup=True)
 
 # Generate HTML content
 html_content = f'''
