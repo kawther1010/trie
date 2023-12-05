@@ -118,7 +118,7 @@ with open('dot/quicksort_tree.dot', 'w') as dot_file:
     dot_file.write('}\n')
 dot_file_path = 'dot/quicksort_tree.dot'
 
-png_output_path = 'quicksort_tree.png'
+png_output_path = 'png/quicksort_tree.png'
 
 # Run the dot command to generate PNG from DOT file
 subprocess.run(['dot', '-Tpng', '-o', png_output_path, dot_file_path])
